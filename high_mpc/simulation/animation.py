@@ -52,7 +52,7 @@ class SimVisual(object):
         self.ax_vel.legend()
         # self.ax_vel.title.set_text('Vel')
         self.ax_vel.set_xlabel('t (s)')
-        self.ax_vel.set_ylabel('Vel (m/s^2)')
+        self.ax_vel.set_ylabel('Vel (m/s)')
 
         self.ax_att = self.fig.add_subplot(self.gs[2, :3])
         self.ax_att.set_ylim([self.att_min, self.att_max])
@@ -60,7 +60,7 @@ class SimVisual(object):
         self.ax_att.legend()
         # self.ax_att.title.set_text('Acc')
         self.ax_att.set_xlabel('t (s)')
-        self.ax_att.set_ylabel('Acc (m)')
+        self.ax_att.set_ylabel('Acc (m/s^2)')
         
         self.ax_act = self.fig.add_subplot(self.gs[3, :3])
         self.ax_act.set_ylim([self.act_min, self.act_max])
@@ -113,6 +113,7 @@ class SimVisual(object):
         self.l_quad_pos, = self.ax_3d.plot([], [], [], 'b-', label='past traj')
         self.l_quad_pred_traj, = self.ax_3d.plot([], [], [], 'r*', label='prediceted traj')
         self.l_pend_pred_traj, = self.ax_3d.plot([], [], [], 'ko', label='prediceted pend pos')
+        self.l_pend_below_pos, = self.ax_3d.plot([], [], [], 'k*', label='pendulum below pos')
         #
         self.l_pend, = self.ax_3d.plot([], [], [], 'g', linewidth=2, label='pend pos')
         self.l_pend_edge1, = self.ax_3d.plot([], [], [], 'g', linewidth=2)
@@ -192,6 +193,11 @@ class SimVisual(object):
         # Initialize pendulum plot
         self.l_pend.set_data([], [])
         self.l_pend.set_3d_properties([])
+
+        # Initialize pendulum plot
+        self.l_pend_below_pos.set_data([], [])
+        self.l_pend_below_pos.set_3d_properties([])
+
         #
         self.l_pend_edge1.set_data([], [])
         self.l_pend_edge1.set_3d_properties([])
@@ -219,8 +225,9 @@ class SimVisual(object):
             self.l_pend_ax, self.l_pend_ay, self.l_pend_az, \
             self.l_quad_pos, self.l_quad_pred_traj, self.l_pend, \
             self.l_pend_pred_traj, self.l_quad_x, self.l_quad_y,  self.l_quad_z, \
-            self.l_pend_edge1, self.l_pend_edge2, self.l_pend_edge3, self.l_pend_edge4, 
-
+            self.l_pend_edge1, self.l_pend_edge2, self.l_pend_edge3, self.l_pend_edge4, \
+            self.l_pend_below_pos,
+    '''
     def update(self, data_info):
         info, t, update = data_info[0], data_info[1], data_info[2]
         quad_obs = info["quad_obs"]
@@ -338,7 +345,7 @@ class SimVisual(object):
             self.l_quad_pos, self.l_quad_pred_traj, self.l_pend, \
             self.l_pend_pred_traj, self.l_quad_x, self.l_quad_y,  self.l_quad_z, \
             self.l_pend_edge1, self.l_pend_edge2, self.l_pend_edge3, self.l_pend_edge4, 
-    
+    '''
 
     def updateinfo(self, t, info):
         
@@ -363,10 +370,18 @@ class SimVisual(object):
             self.quad_att.append(quad_obs[3:6])
             self.quad_vel.append(quad_obs[6:9])
             self.quad_cmd.append(quad_act[0:4])
+
+            pend_below_pos_x = quad_obs[10]
+            pend_below_pos_y = quad_obs[11]
+            pend_below_pos_z = - math.sqrt(0.1**2 - pend_below_pos_x**2 - pend_below_pos_y**2)
+            
+            # print('pend_below = ', quad_obs[9:13])
+
             #
             self.pend_pos.append(pend_obs[0:3])
             self.pend_att.append(pend_obs[3:6])
             self.pend_vel.append(pend_obs[6:9])
+
             
 
         if len(self.ts) == 0:
@@ -414,6 +429,10 @@ class SimVisual(object):
             # plot quadrotor trajectory
             self.l_quad_pos.set_data(quad_pos_arr[:, 0], quad_pos_arr[:, 1])
             self.l_quad_pos.set_3d_properties(quad_pos_arr[:, 2])
+
+            # plot pendulum below the drone
+            self.l_pend_below_pos.set_data([quad_obs[0], quad_obs[0]+10*pend_below_pos_x], [quad_obs[1], quad_obs[1]+10*pend_below_pos_y] )
+            self.l_pend_below_pos.set_3d_properties([quad_obs[2], quad_obs[2]+10*pend_below_pos_z])
 
             # plot mpc plan trajectory
             self.l_quad_pred_traj.set_data(pred_quad_traj[:, 0], pred_quad_traj[:, 1])

@@ -121,10 +121,11 @@ class Pendulum_v0(object):
         return self._state
         
     def get_cartesian_state(self):
-        cartesian_state = np.zeros(shape=9)
+        cartesian_state = np.zeros(shape=13)
         cartesian_state[0:3] = self.get_position()
         cartesian_state[3:6] = self.get_euler()
         cartesian_state[6:9] = self.get_veloctiy()
+        cartesian_state[9:13] = np.zeros(shape=4)
         return cartesian_state
     
     def get_position(self,):

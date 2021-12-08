@@ -40,7 +40,7 @@ class Quadrotor_v0(object):
         self.reset()
         # self._t = 0.0
         self.l = -0.1
-        self.kosi = 0.01
+        self.kosi = 0.1
     
     def reset(self):
         self._state = np.zeros(shape=self.s_dim)
@@ -144,10 +144,12 @@ class Quadrotor_v0(object):
         """
         Get the Full state in Cartesian coordinates
         """
-        cartesian_state = np.zeros(shape=9)
+        cartesian_state = np.zeros(shape=13)
         cartesian_state[0:3] = self.get_position()
         cartesian_state[3:6] = self.get_euler()
         cartesian_state[6:9] = self.get_velocity()
+        # cartesian_state[10:14] = self.get_pendulum_below_state()
+        cartesian_state[9:13] = self._state[kr:ks_dot+1]
         return cartesian_state
     
     def get_position(self,):
@@ -161,6 +163,13 @@ class Quadrotor_v0(object):
         Retrieve Linear Velocity
         """
         return self._state[kVelX:kVelZ+1]
+
+    def get_pendulum_below_state(self,):
+        """
+        Retrieve pendulum Position(dx, dy), Velocity(vx, vy)
+        """
+        return self._state[kr:ks_dot+1]
+
     
     def get_quaternion(self,):
         """
